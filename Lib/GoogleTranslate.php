@@ -1,7 +1,4 @@
 <?php
-
-App::uses('HttpSocket', 'Network/Http');
-
 class GoogleTranslate {
 	protected $apiUri = 'https://www.googleapis.com/language/translate/v2';
 	
@@ -29,8 +26,6 @@ class GoogleTranslate {
 		{
 			$this->apiKey = $_key;
 		}
-		
-		$this->HttpSocket = new HttpSocket();
 	}
 	
 	/**
@@ -94,14 +89,31 @@ class GoogleTranslate {
 	 */
 	protected function translate()
 	{
-		$response = $this->HttpSocket->get($this->apiUri, $this->buildParameters());
+		// create a connection to the API endpoint
+		$ch = curl_init($this->apiUri);
+
+		// tell cURL to return the response rather than outputting it
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+		// write the form data to the request in the post body
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($this->buildParameters()));
+
+		// include the header to make Google treat this post request as a get request
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array('X-HTTP-Method-Override: GET'));
+
+		// execute the HTTP request
+		$json = curl_exec($ch);
+		curl_close($ch);
+
+		// decode the response data
+		$response = json_decode($json, true);
 		
-		if($response->isOk())
+		if ($response === false) 
 		{
-			$data = json_decode($response->body());
-			
-			$this->translated = implode(' ', $data['data']['translations']);
+			throw new CakeException("Não foi possível ler a resposta de $url");
 		}
+		
+		$this->original = $response['data']['translations'][0]['translatedText'];
 		
 		return $this->original;
 	}
