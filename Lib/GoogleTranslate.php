@@ -104,7 +104,7 @@ class GoogleTranslate {
 		// execute the HTTP request
 		$json = curl_exec($ch);
 		curl_close($ch);
-
+		
 		// decode the response data
 		$response = json_decode($json, true);
 		
@@ -113,9 +113,9 @@ class GoogleTranslate {
 			throw new CakeException("Não foi possível ler a resposta de $url");
 		}
 		
-		$this->original = $response['data']['translations'][0]['translatedText'];
+		$this->translated = $response['data']['translations'][0]['translatedText'];
 		
-		return $this->original;
+		return $this->translated;
 	}
 	
 	private function buildParameters()
